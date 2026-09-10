@@ -1,39 +1,37 @@
 # Project proposal
 
-**Guarded RAG — detecting prompt injection in documents retrieved by a
+**Guarded RAG: detecting prompt injection in documents retrieved by a
 question-answering assistant**
 
-Ruslan Sabitov — Student ID 99774243 — SE_AI
+Ruslan Sabitov. Student ID 99774243. SE_AI.
 
 ---
 
 ## 1. Motivation
 
-Retrieval-augmented generation lets a language model answer questions over a
-private document collection without retraining. The retrieved text is placed
-into the model's prompt, where it is indistinguishable from the instructions
-the developer wrote.
+Retrieval-augmented generation lets a language model answer questions about a
+private document collection without anyone retraining it. The pipeline pastes
+the retrieved text into the prompt, where it sits next to the instructions the
+developer wrote and looks exactly like them.
 
-This is an unresolved weakness rather than an implementation mistake. Whoever
-controls a document in the corpus controls part of the prompt. In a finance
-setting the attack is concrete: a supplier submits an invoice whose text
-instructs the reviewing model to approve it, and the model complies.
+No implementation fixes this. Whoever controls a document in the corpus
+controls part of the prompt. A supplier submits an invoice whose text tells the
+reviewing model to approve it, and the model approves it.
 
 ## 2. Objective
 
-Build a working RAG assistant and add a guard stage between retrieval and
-generation that classifies each retrieved chunk as clean or injected.
-Injected chunks are withheld from the prompt and reported to the user rather
-than silently obeyed.
+Build a working RAG assistant, then add a guard between retrieval and
+generation that classifies each retrieved chunk as clean or injected. The guard
+keeps injected chunks out of the prompt and names them in the answer.
 
-Measure how well that guard works.
+Then measure how well the guard works.
 
 ## 3. System design
 
 | Stage | Technology |
 |---|---|
 | Document loading and chunking | LangChain, RecursiveCharacterTextSplitter |
-| Embeddings | sentence-transformers |
+| Embeddings | sentence-transformers, run locally |
 | Vector store | ChromaDB |
 | Guard | classifier (see section 4) |
 | Generation | LLM over the surviving chunks |
@@ -41,41 +39,55 @@ Measure how well that guard works.
 
 ## 4. The classifier
 
-Two stages, built and compared:
+Two stages, built and measured against each other:
 
-**Stage 1 — heuristic baseline.** Keyword and pattern matching over known
-injection phrasing. Transparent, instant, and expected to fail on rephrased
-attacks. The failure is the reason stage 2 exists.
+**Stage 1, heuristics.** Keyword and pattern matching over known injection
+phrasing. The rule set fits on one screen and runs in microseconds. Rephrase an
+attack outside its patterns and it misses, which is the reason stage 2 exists.
 
-**Stage 2 — DistilBERT fine-tuned with LoRA.** Parameter-efficient
-fine-tuning (PEFT) on a labelled corpus of clean and injected document
-chunks, following the fine-tuning approach covered in the course.
+**Stage 2, DistilBERT fine-tuned with LoRA.** Parameter-efficient fine-tuning
+(PEFT) on a labelled corpus of clean and injected document chunks, following
+the fine-tuning approach the course covers.
+
+**Reference point.** Meta publishes Prompt Guard 2, a general-purpose injection
+classifier. Running it over the same test set answers the obvious question: why
+train your own model when someone has already published one?
 
 ## 5. Data
 
-Public prompt-injection datasets, extended with synthetic invoice and
-expense-claim chunks written to cover the document domain. Both classes are
-labelled; the split is stratified.
+`build_dataset.py` generates 767 labelled chunks from templates under a fixed
+seed, so anyone with the file rebuilds the corpus byte for byte.
+
+The clean class holds invoice text and hard negatives, meaning polite requests
+aimed at a person, such as "Please disregard the previous version of this
+document." Without those the classifier settles on "imperative verb means
+attack" and blocks half the real documents it sees.
+
+The injected class covers six attack types: instruction override, role
+spoofing, output manipulation, finding suppression, prompt exfiltration and
+delimiter spoofing. Most injections sit wrapped inside ordinary invoice lines,
+so the classifier cannot key on a chunk looking short and strange.
 
 ## 6. Evaluation
 
-Precision, recall, F1 and a confusion matrix, reported for both stages on
-the same held-out test set.
+Precision, recall, F1 and a confusion matrix on the same held-out split for
+every stage.
 
-Recall is weighted above precision. A missed injection is an approved
-fraudulent payment; a false positive costs a clerk one manual look. This
-asymmetry is the reason the decision threshold is not left at its default.
+Recall carries more weight than precision. Miss an injection and someone pays a
+fraudulent invoice. Raise a false alarm and a clerk spends thirty seconds
+looking at a clean document. That gap is why the decision threshold does not
+stay at its default.
 
 ## 7. Error analysis
 
-Robustness against obfuscation — paraphrasing, inserted whitespace, and
-language switching — reported honestly, including the cases the guard does
-not catch.
+Which attack types slip through, broken down by category, and what happens when
+an attacker paraphrases or pads an injection with whitespace. The report names
+the cases the guard misses.
 
 ## 8. Deliverables
 
 - This repository, with commit history covering the development period
 - A written report of the design, results and error analysis
 - A FastAPI service exposing the guarded assistant
-- A live demonstration contrasting the assistant with the guard disabled
-  and enabled on the same document
+- A live demonstration of the same document answered with the guard off, then
+  with it on

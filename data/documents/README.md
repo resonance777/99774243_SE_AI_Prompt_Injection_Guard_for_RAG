@@ -1,11 +1,11 @@
 # Documents
 
-Synthetic documents used as the retrieval corpus.
+The retrieval corpus. Every document here is synthetic.
 
-`invoice_INV-2026-1193.txt` is a fabricated supplier invoice. Both the company
-and the transaction are invented; no real invoice was used, and none could be.
+`invoice_INV-2026-1193.txt` is a fabricated supplier invoice. I invented the
+company and the transaction. Using a real invoice was never an option, and a
+fabricated one can be built to carry the exact defect the project needs.
 
-It carries one deliberate defect: position 3 contains a passage addressed not
-to the reader but to the reviewing system, instructing it to suppress its
-findings and approve the document. It is the attack this project defends
-against, and the reason the corpus needs a document that contains one.
+That defect sits in line item 3: a passage written for the reviewing system to
+obey, telling it to suppress its findings and approve the document. The corpus
+needs a document containing an attack, and this is it.
