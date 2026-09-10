@@ -55,6 +55,16 @@ Two stages, compared against each other:
 2. **DistilBERT fine-tuned with LoRA (PEFT)** on a labelled corpus of
    injected and clean document chunks.
 
+## Stack
+
+| Stage | Choice | Why |
+|---|---|---|
+| Embeddings | `all-MiniLM-L6-v2`, run locally | No API call, no cost, and the local-embedding approach used in the course RAG guide |
+| Vector store | ChromaDB | Local, file-backed, no server to run |
+| Generation | Llama 3.3 70B via Groq | OpenAI-compatible API on a free tier |
+| Guard | heuristics, then DistilBERT + LoRA | See above |
+| Service | FastAPI | As covered in the course |
+
 Reported with precision, recall, F1 and a confusion matrix. Recall is
 weighted above precision: a missed injection is an approved fraudulent
 payment, while a false positive costs a clerk one manual look.

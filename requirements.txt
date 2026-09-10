@@ -1,15 +1,18 @@
 # RAG pipeline
 langchain
 langchain-community
-langchain-openai
 langchain-chroma
+langchain-text-splitters
 chromadb
 pypdf
 tiktoken
-langchain-text-splitters
 
-# OpenAI
-openai
+# Local embeddings (no API, no cost)
+langchain-huggingface
+sentence-transformers
+
+# Generation via Groq's OpenAI-compatible API
+langchain-openai
 python-dotenv
 
 # Guard classifier
