@@ -1,0 +1,25 @@
+# RAG pipeline
+langchain
+langchain-community
+langchain-openai
+langchain-chroma
+chromadb
+pypdf
+tiktoken
+langchain-text-splitters
+
+# OpenAI
+openai
+python-dotenv
+
+# Guard classifier
+transformers
+peft
+datasets
+accelerate
+torch
+scikit-learn
+
+# Service
+fastapi
+uvicorn
