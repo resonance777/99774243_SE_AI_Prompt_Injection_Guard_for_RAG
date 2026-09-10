@@ -2,7 +2,7 @@
 
 Synthetic documents used as the retrieval corpus.
 
-`invoice_RE-2026-1193.txt` is a fabricated supplier invoice. Both the company
+`invoice_INV-2026-1193.txt` is a fabricated supplier invoice. Both the company
 and the transaction are invented; no real invoice was used, and none could be.
 
 It carries one deliberate defect: position 3 contains a passage addressed not
