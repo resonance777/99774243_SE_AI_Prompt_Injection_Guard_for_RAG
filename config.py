@@ -29,7 +29,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 # Groq exposes an OpenAI-compatible API, so the OpenAI client works unchanged
 # once it is pointed at their base URL.
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
