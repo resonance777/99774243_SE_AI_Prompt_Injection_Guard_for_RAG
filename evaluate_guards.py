@@ -146,6 +146,11 @@ def main():
     print(f"Test split: {len(test)} rows")
 
     detectors = [HeuristicDetector(), PromptGuardDetector()]
+    try:
+        from guard.distilbert import DistilBertDetector
+        detectors.append(DistilBertDetector())
+    except FileNotFoundError as error:
+        print(f"  skipping distilbert-lora: {error}")
     results = {}
     for detector in detectors:
         print(f"  {detector.name}")
