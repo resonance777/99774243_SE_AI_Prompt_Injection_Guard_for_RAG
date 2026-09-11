@@ -83,6 +83,47 @@ pays a fraudulent invoice. Raise a false alarm and a clerk spends thirty
 seconds looking at a clean document. Those two costs sit far apart, so the
 decision threshold does not stay at 0.5.
 
+## Results
+
+The test half holds 298 chunks from 21 templates. The fine-tuned model trained
+on none of those templates, so every test sentence is a phrasing it never saw.
+
+| Detector | Precision | Recall | F1 | Missed attacks | False alarms |
+|---|---|---|---|---|---|
+| Heuristics | 1.000 | 0.774 | 0.873 | 37 | 0 |
+| Prompt Guard 2 (Meta) | 1.000 | 0.165 | 0.283 | 137 | 0 |
+| DistilBERT + LoRA | 0.927 | 1.000 | 0.962 | 0 | 13 |
+
+The fine-tuned model caught all 164 attacks in the test half. It also raised
+13 false alarms, every one on two clean sentences that open the way attacks
+open: "Do not send the goods back to ... without contacting us first" and
+"Important: claim ... cannot be processed without a signature." In training,
+"Do not" and "Important:" appeared far more often in attacks than in clean
+text, and the model learned the opening along with the intent.
+
+Prompt Guard caught 27 of 164 attacks. Meta trained it on chat jailbreaks,
+where an attack opens with "ignore previous instructions", and it catches part
+of that category and none of the other five. It scores an instruction dressed
+as an internal note on an invoice as ordinary text.
+
+[results/metrics.md](results/metrics.md) breaks the misses down by attack type
+and lists every false alarm.
+
+## How the numbers got here
+
+Two earlier runs produced results I threw away, and the repository history
+keeps both.
+
+The first gave both untrained detectors perfect precision. Templates without
+substitution slots had collapsed to one row each, and the hardest clean
+examples all landed in the training half.
+
+The second gave the fine-tuned model 1.000 on every metric. I had split the
+corpus by row, and 191 of 231 test rows had a twin in training that differed
+only in an item number or a date. Splitting by template exposed the
+memorisation at once: validation loss rose from 0.199 after the first epoch to
+0.469 after the third, and the trainer kept the first.
+
 ## Status
 
 Work in progress. PROPOSAL.md carries the full proposal.

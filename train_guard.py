@@ -9,7 +9,8 @@ section by section. The differences, and the reason for each:
 3. A validation set carved out of the training half. The notebook scores the
    test set after every epoch and keeps the best epoch by that score, which
    tunes the model to the test set. Here the epoch is picked on validation,
-   and the test set stays untouched until evaluate_guards.py.
+   and the test set stays untouched until evaluate_guards.py. Both are split
+   by template rather than by row; guard/data.py explains why.
 4. Two labels instead of three, and binary precision/recall/F1 for the
    injection class instead of weighted F1 across sentiment classes.
 
@@ -22,7 +23,6 @@ import numpy as np
 from datasets import Dataset
 from peft import LoraConfig, get_peft_model
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from sklearn.model_selection import train_test_split
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -31,7 +31,7 @@ from transformers import (
     set_seed,
 )
 
-from guard.data import SPLIT_SEED, load_split
+from guard.data import SPLIT_SEED, load_train_validation
 
 MODEL_NAME = "distilbert-base-uncased"
 OUTPUT_DIR = "models/guard_lora"
@@ -43,15 +43,9 @@ set_seed(SPLIT_SEED)
 # 1. Data preparation
 # ---------------------------------------------------------------------------
 
-train_rows, _test_rows = load_split()
-
-# The test half from load_split is never used in this file.
-train_rows, val_rows = train_test_split(
-    train_rows,
-    test_size=0.1,
-    random_state=SPLIT_SEED,
-    stratify=[label for _text, label, _category in train_rows],
-)
+# Both halves come split by template from guard/data.py. The test half is
+# never loaded in this file.
+train_rows, val_rows = load_train_validation()
 
 
 def to_dataset(rows):

@@ -216,35 +216,40 @@ def fill(template):
 def build():
     rows = []
 
+    # Every row records which template produced it. Rows from one template
+    # differ only in their slot values, so they cannot be treated as
+    # independent: guard/data.py splits by this id, never by row.
+
     # Class 0 - plain document text
     for _ in range(22):
-        for template in CLEAN_TEMPLATES:
-            rows.append((fill(template), 0, "document_text"))
+        for index, template in enumerate(CLEAN_TEMPLATES):
+            rows.append((fill(template), 0, "document_text",
+                         f"document_text_{index:02d}"))
 
     # Class 0 - hard negatives
     for _ in range(20):
-        for template in CLEAN_HARD_TEMPLATES:
-            rows.append((fill(template), 0, "instruction_to_human"))
+        for index, template in enumerate(CLEAN_HARD_TEMPLATES):
+            rows.append((fill(template), 0, "instruction_to_human",
+                         f"instruction_to_human_{index:02d}"))
 
     # Class 1 - injections, wrapped in document text some of the time
     for _ in range(20):
         for category, templates in INJECTION_TEMPLATES.items():
-            for template in templates:
+            for index, template in enumerate(templates):
                 payload = fill(template)
                 wrapper = fill(random.choice(WRAPPERS))
                 rows.append((wrapper.replace("{payload}", payload), 1,
-                             category))
+                             category, f"{category}_{index:02d}"))
 
-    # Templates repeat, so identical rows appear. Dropping them keeps the same
-    # text out of both halves of the split, which would otherwise make the
-    # reported score meaningless.
+    # Templates repeat, so identical rows appear. Dropping the copies stops
+    # one text being counted several times.
     seen = set()
     unique = []
-    for text, label, category in rows:
-        if text in seen:
+    for row in rows:
+        if row[0] in seen:
             continue
-        seen.add(text)
-        unique.append((text, label, category))
+        seen.add(row[0])
+        unique.append(row)
 
     random.shuffle(unique)
     return unique
@@ -256,18 +261,20 @@ def main():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with OUT_PATH.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["text", "label", "category"])
+        writer.writerow(["text", "label", "category", "template_id"])
         writer.writerows(rows)
 
     clean = sum(1 for row in rows if row[1] == 0)
     injected = len(rows) - clean
-    print(f"Wrote {len(rows)} unique examples to {OUT_PATH}")
+    templates = len({row[3] for row in rows})
+    print(f"Wrote {len(rows)} unique examples from {templates} templates "
+          f"to {OUT_PATH}")
     print(f"  clean      {clean}")
     print(f"  injection  {injected}")
     print()
     print("By category:")
     counts = {}
-    for _text, _label, category in rows:
+    for _text, _label, category, _template in rows:
         counts[category] = counts.get(category, 0) + 1
     for category, count in sorted(counts.items(), key=lambda kv: -kv[1]):
         print(f"  {category:<24} {count}")
