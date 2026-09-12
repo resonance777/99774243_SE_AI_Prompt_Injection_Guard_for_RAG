@@ -32,6 +32,13 @@ GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+# gpt-oss reasons before it answers, and the reasoning spends tokens from the
+# same budget as the answer. At the default cap it spent 2046 of 2048 tokens
+# thinking about the defensive prompt and returned an empty answer, so the
+# budget goes up and the reasoning stays short.
+MAX_TOKENS = 4096
+REASONING_EFFORT = "low"
+
 
 def get_embeddings():
     from langchain_huggingface import HuggingFaceEmbeddings
@@ -52,4 +59,6 @@ def get_llm(temperature=0):
         base_url=GROQ_BASE_URL,
         api_key=GROQ_API_KEY,
         temperature=temperature,
+        max_tokens=MAX_TOKENS,
+        reasoning_effort=REASONING_EFFORT,
     )
