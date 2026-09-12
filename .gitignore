@@ -7,3 +7,6 @@ chroma_db/
 models/
 *.safetensors
 .ipynb_checkpoints/
+
+# Local tool configuration, not part of the project
+.claude/
