@@ -109,6 +109,31 @@ as an internal note on an invoice as ordinary text.
 [results/metrics.md](results/metrics.md) breaks the misses down by attack type
 and lists every false alarm.
 
+## How the fine-tuning works
+
+`train_guard.py` follows the course notebook `finetune_financial_sentiment.ipynb`
+section by section, with the differences listed in its docstring.
+
+DistilBERT carries 67 million parameters, and Google fixed their values by
+training on a large corpus of English. Retraining all of them on 854 invoice
+chunks would overwrite what that corpus taught and would not fit on a laptop.
+LoRA freezes those weights and adds a small pair of matrices beside the query
+and value projections in each attention block. Training touches only the new
+matrices and the two classification layers, which DistilBERT creates fresh for
+any new task:
+
+```
+trainable params: 739,586 || all params: 67,694,596 || trainable%: 1.0925
+```
+
+Three epochs on a CPU take about four minutes. Training loss falls from 0.666,
+which is ln(2) and the loss of a coin flip between two classes, to 0.004.
+
+The classifier reports a probability rather than a label. `torch.softmax` turns
+the model's two raw outputs into two numbers that sum to 1, and the guard
+compares the injection one against a threshold of 0.5. On the chunk carrying
+the attack in the demonstration invoice, that probability is 0.996.
+
 ## The demonstration
 
 `python demo.py` asks one question about the invoice three times, changing one
