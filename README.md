@@ -8,6 +8,39 @@ Artificial Intelligence retake, September 2026.
 
 ---
 
+## Running it
+
+```bash
+python -m venv venv
+venv\Scripts\activate                 # source venv/bin/activate on Linux or macOS
+pip install -r requirements.txt
+copy .env.example .env                # then put a Groq key in it, free from console.groq.com
+```
+
+Then, in order:
+
+```bash
+python build_dataset.py               # writes data/injections/dataset.csv, 1152 labelled chunks
+python train_guard.py                 # fine-tunes the guard, about four minutes on a CPU
+python ingest.py                      # embeds data/documents into chroma_db/
+python demo.py                        # the demonstration: one question, three modes
+```
+
+`train_guard.py` comes first because everything after it loads the adapter it
+writes to `models/guard_lora`. That directory is not in the repository: it is a
+build output, and four minutes of CPU rebuilds it from the committed corpus
+and the seeds in `guard/data.py`.
+
+Two more entry points:
+
+```bash
+python evaluate_guards.py             # scores all three detectors, writes results/metrics.md
+uvicorn main:app --reload             # the service, with interactive docs at /docs
+```
+
+`evaluate_guards.py` reads Prompt Guard's answers from
+`results/promptguard_cache.json`, so it reruns without an API key.
+
 ## The problem
 
 A retrieval-augmented generation system reads documents that nobody on your
