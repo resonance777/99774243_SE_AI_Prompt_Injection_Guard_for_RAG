@@ -8,6 +8,7 @@ Run once before chat.py, and again whenever the documents change:
     python ingest.py
 """
 
+import shutil
 from pathlib import Path
 
 from langchain_chroma import Chroma
@@ -54,6 +55,9 @@ def main():
 
     print(f"Embedding locally with {config.EMBEDDING_MODEL}")
     print("(the first run downloads the model, roughly 90 MB)")
+    # Chroma appends to an existing store rather than replacing it, so a second
+    # run would hold every chunk twice. Start from an empty store each time.
+    shutil.rmtree(config.CHROMA_DIR, ignore_errors=True)
     Chroma.from_documents(
         documents=chunks,
         embedding=config.get_embeddings(),
