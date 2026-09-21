@@ -3,7 +3,7 @@
 **Guarded RAG: a document question-answering assistant that detects prompt
 injection in the documents it retrieves.**
 
-Ruslan Sabitov. Student ID 99774243. Software Engineering BSc, section 3C.
+Ruslan Sabitov. Student ID 99774243. Software Engineering BSc.
 
 [ARCHITECTURE.md](ARCHITECTURE.md) maps every component, the two pipelines, the
 design decisions and the results tables.
