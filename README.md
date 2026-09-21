@@ -4,7 +4,6 @@
 injection in the documents it retrieves.**
 
 Ruslan Sabitov. Student ID 99774243. Software Engineering BSc, section 3C.
-Artificial Intelligence retake, September 2026.
 
 [ARCHITECTURE.md](ARCHITECTURE.md) maps every component, the two pipelines, the
 design decisions and the results tables.
